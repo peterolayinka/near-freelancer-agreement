@@ -21,7 +21,20 @@ echo "(run this script again to see changes made by this file)"
 echo ---------------------------------------------------------
 echo
 
-near view $CONTRACT helloWorld
+# near call $CONTRACT create_project '{"title": "tata", "description": "tamtam", "contractor": "test.peterolayinka.testnet"}' --accountId peterolayinka.testnet --amount 2
+
+# near call $CONTRACT latest_projects  --accountId peterolayinka.testnet
+
+#  near call $CONTRACT project_created  --accountId peterolayinka.testnet
+
+#  near call $CONTRACT project_assigned  --accountId peterolayinka.testnet
+
+# near call $CONTRACT project_detail '{"id": 0}' --accountId $CONTRACT
+
+# near call $CONTRACT update_status '{"id":0, "status": "PAID"}' --accountId $CONTRACT
+
+# near call $CONTRACT reassign_contractor '{"id": 0, "contractor": "big.peterolayinka.testnet"}'  --accountId peterolayinka.testnet
+
 
 echo
 echo

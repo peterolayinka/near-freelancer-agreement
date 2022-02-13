@@ -1,5 +1,5 @@
 import { Context, u128 } from "near-sdk-core"
-import { Project, Projects } from "./models"
+import { Project, Projects, ReturnedProject, Vector } from "./models"
 
 
 @nearBindgen
@@ -8,29 +8,29 @@ export class Contract {
     Projects.pushBack(new Project(title, description, contractor))
   }
 
-  latest_projects(): Array<Project> {
+  latest_projects(): Project[] {
     return Projects.get_last(10)
   }
 
-  project_created(): Array<Project> | null {
-    const result = new Array<Project>(Projects.length);
+  projects_created(): ReturnedProject[] {
+    let result = new Array<ReturnedProject>();
     for (let i = 0; i < Projects.length; i++) {
       if (Projects[i].owner == Context.sender) {
-        result[i] = Projects[i];
+        let project = Projects[i]
+        result.push(new ReturnedProject(project.id, project));
       }
     }
-
     return result
   }
 
-  project_assigned(): Array<Project> | null {
-    const result = new Array<Project>(Projects.length);
-    for (let i = 0; i < Projects.length; i++) {
+  projects_assigned(): ReturnedProject[] {
+    let result = new Array<ReturnedProject>();
+    for (let i:i32 = 0; i < Projects.length; i++) {
       if (Projects[i].contractor == Context.sender) {
-        result[i] = Projects[i];
+      let project = Projects[i]
+      result.push(new ReturnedProject(project.id, project));
       }
     }
-
     return result
   }
 
@@ -41,7 +41,13 @@ export class Contract {
     return Projects[id];
   }
 
-  update_status(id: i32, status: string): void {
-    Projects[id].update_status(Context.sender, status)
+  reassign_contractor(id: i32, contractor: string): string {
+    assert((Projects[id].owner == Context.sender), "you don't have access to this project");
+    return Projects[id].reassign_contractor(contractor);
+  }
+
+  update_status(id: i32, status: string): string {
+    assert((Projects[id].owner == Context.sender || Projects[id].contractor == Context.sender), "you don't have access to this project");
+    return Projects[id].update_status(Context.sender, status)
   }
 }

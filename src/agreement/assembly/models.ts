@@ -2,31 +2,18 @@ import { Context, u128, PersistentVector, ContractPromiseBatch, logging } from "
 import { assert_single_promise_success, XCC_GAS } from "../../utils"
 
 
-// type AccountId = string;
-// type Address = string;
+export const NEW = "NEW";
+export const ACCEPTED = "ACCEPTED";
+export const INPROGRESS = "INPROGRESS";
+export const FINISHED = "FINISHED";
+export const CANCELLED = "CANCELLED";
+export const REVIEWING = "REVIEWING";
+export const PAID = "PAID";
 
-// export enum ProjectStatus {
-//   NEW = "NEW",
-//   ACCEPTED = "ACCEPTED",
-//   INPROGRESS = "INPROGRESS",
-//   FINISHED = "FINISHED",
-//   CANCELLED = "CANCELLED",
-//   REVIEWING = "REVIEWING",
-//   PAID = "PAID"
-// }
-const NEW = "NEW";
-const ACCEPTED = "ACCEPTED";
-const INPROGRESS = "INPROGRESS";
-const FINISHED = "FINISHED";
-const CANCELLED = "CANCELLED";
-const REVIEWING = "REVIEWING";
-const PAID = "PAID";
-
-// export type ProjectStatus = "NEW" |"ACCEPTED" | "INPROGRESS" | "FINISHED" | "CANCELLED" | "REVIEWING" | "PAID";
 
 @nearBindgen
 export class Project {
-  public id: u64;
+  public id: i32;
   public owner: string;
   public title: string;
   public description: string;
@@ -42,13 +29,13 @@ export class Project {
   // public comments:PersistentMap<AccountId,string>;
 
   constructor(
-    // owner: string,
     title: string,
     description: string,
     contractor: string,
   ) {
     const deposit = Context.attachedDeposit
     assert(deposit > u128.Zero, "You can't start a project with 0 balance");
+    this.id = Projects.length;
     this.owner = Context.sender;
     this.title = title;
     this.description = description;
@@ -61,63 +48,88 @@ export class Project {
   }
 
   @mutateState()
-  reassign_contractor(contractor: string): void {
+  reassign_contractor(contractor: string): string {
+    assert(this.owner !== Context.sender, "You are not allowed to cancel this project");
     assert(this.status !== NEW, "You can't reassign contractor because project has already started");
     this.contractor = contractor;
     logging.log(`project worth ${this.amount} was reassigned`)
-
+    Projects.replace(this.id, this)
+    return "reassigned"
   }
 
   @mutateState()
-  update_status(contractor: string, action: string): void {
+  update_status(contractor: string, action: string): string {
+    assert([CANCELLED, ACCEPTED, INPROGRESS, FINISHED, REVIEWING, PAID].includes(action), "No such status exists");
+
     if (action == CANCELLED) {
-      assert(this.contractor == contractor, "You are not allowed to cancel this project");
+      assert(this.contractor == contractor, "This project was not assigned to you.");
+      this.transfer(this.owner);
       this.status = CANCELLED;
       this.cancelled_at = Context.blockTimestamp
       logging.log(`project worth ${this.amount} was cancelled`)
-      // return money to owner
+      Projects.replace(this.id, this)
+      return "project cancelled";
     }
 
-    if (action == ACCEPTED && this.status == NEW) {
+    if (action == ACCEPTED) {
       assert(this.contractor == contractor, "This project was not assigned to you.");
-      this.status = ACCEPTED;
-      this.started_at = Context.blockTimestamp
-      logging.log(`project worth ${this.amount} was accepted`)
+      if (this.status == NEW){
+        this.status = ACCEPTED;
+        this.started_at = Context.blockTimestamp
+        logging.log(`project worth ${this.amount} was accepted`)
+        Projects.replace(this.id, this)
+        return "accepted"
+      }
     }
 
-    if (action == INPROGRESS && this.status == ACCEPTED) {
-      assert(this.contractor == contractor, "You are not allowed to cancel this project");
-      this.status = CANCELLED;
-      this.cancelled_at = Context.blockTimestamp
-      logging.log(`project worth ${this.amount} was started`)
-      // return money to owner
-    }
-
-    if (action == FINISHED && this.status == INPROGRESS) {
+    if (action == INPROGRESS) {
       assert(this.contractor == contractor, "This project was not assigned to you.");
-      this.status = FINISHED;
-      this.finished_at = Context.blockTimestamp
-      logging.log(`project worth ${this.amount} was concluded`)
+      if (this.status == ACCEPTED){
+        this.status = INPROGRESS;
+        logging.log(`project worth ${this.amount} was started`)
+        Projects.replace(this.id, this)
+        return "started"
+      }
     }
 
-    if (action == REVIEWING && this.status == FINISHED) {
+    if (action == FINISHED) {
       assert(this.contractor == contractor, "This project was not assigned to you.");
-      this.status = REVIEWING;
-      this.reviewed_at = Context.blockTimestamp
-      logging.log(`project worth ${this.amount} started review`)
+      if (this.status == INPROGRESS){
+        this.status = FINISHED;
+        this.finished_at = Context.blockTimestamp
+        logging.log(`project worth ${this.amount} was concluded`)
+        Projects.replace(this.id, this)
+        return "finished"
+      }
     }
 
-    if (action == PAID && this.status == REVIEWING) {
-      assert(this.contractor == contractor, "This project was not assigned to you.");
-      this.status = PAID;
-      this.paid_at = Context.blockTimestamp
-      logging.log(`Owner sertisfied with project worth ${this.amount}`)
-      // transfer money to contractor
+    if (action == REVIEWING) {
+      assert(this.owner == contractor, "You are not the owner of this project");
+      if(this.status == FINISHED){
+        this.status = REVIEWING;
+        this.reviewed_at = Context.blockTimestamp
+        logging.log(`project worth ${this.amount} started review`)
+        Projects.replace(this.id, this)
+        return "reviewing";
+      }
     }
 
+    if (action == PAID) {
+      assert(this.owner == contractor, "You are not the owner of this project");
+      if (this.status == REVIEWING){
+        this.transfer(this.contractor);
+        this.status = PAID;
+        this.paid_at = Context.blockTimestamp;
+        logging.log(`Owner sertisfied with project worth ${this.amount}`)
+        Projects.replace(this.id, this)
+        return "paid";
+      }
+    }
+
+    return "invalid action"
   }
 
-  transfer(account: string): void {
+  private transfer(account: string): void {
     const to_account = ContractPromiseBatch.create(account)
     // transfer earnings to owner then confirm transfer complete
     to_account.transfer(this.amount).then(Context.contractName).function_call("on_transfer_complete", '{}', u128.Zero, XCC_GAS)
@@ -126,7 +138,6 @@ export class Project {
   @mutateState()
   on_transfer_complete(): void {
     assert_single_promise_success()
-
     logging.log(`Transfer worth ${this.amount} completed`)
   }
 }
@@ -154,5 +165,12 @@ export class Vector<T> extends PersistentVector<T> {
     return result;
   }
 }
+
+@nearBindgen
+export class ReturnedProject {
+    constructor(public id: i32, public project: Project) {
+    }
+}
+
 
 export let Projects = new Vector<Project>("Project")
