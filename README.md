@@ -59,20 +59,14 @@ export CONTRACT=<contract-account>   # deployed contract account
 │   └── README.md                      # documentation for helper scripts
 ├── src
 │   ├── as_types.d.ts                  # AssemblyScript headers for type hints
-│   ├── simple                         # Contract 1: "Simple example"
+│   ├── agreement                      # Agreement contract
 │   │   ├── __tests__
 │   │   │   ├── as-pect.d.ts           # as-pect unit testing headers for type hints
-│   │   │   └── index.unit.spec.ts     # unit tests for contract 1
+│   │   │   └── index.unit.spec.ts     # unit tests for contract
 │   │   ├── asconfig.json              # configuration for AssemblyScript compiler (one per contract)
 │   │   └── assembly
-│   │       └── index.ts               # contract code for contract 1
-│   ├── singleton                      # Contract 2: "Singleton-style example"
-│   │   ├── __tests__
-│   │   │   ├── as-pect.d.ts           # as-pect unit testing headers for type hints
-│   │   │   └── index.unit.spec.ts     # unit tests for contract 2
-│   │   ├── asconfig.json              # configuration for AssemblyScript compiler (one per contract)
-│   │   └── assembly
-│   │       └── index.ts               # contract code for contract 2
+│   │       └── index.ts               # contract interface code
+│   │       └── models.ts              # contract model code
 │   ├── tsconfig.json                  # Typescript configuration
 │   └── utils.ts                       # common contract utility functions
 └── yarn.lock                          # project manifest version lock
