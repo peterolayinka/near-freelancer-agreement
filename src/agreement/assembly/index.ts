@@ -12,23 +12,23 @@ export class Contract {
     return Projects.get_last(10)
   }
 
-  projects_created(): ReturnedProject[] {
-    let result = new Array<ReturnedProject>();
+  projects_created(): Project[] {
+    let result = new Array<Project>();
     for (let i = 0; i < Projects.length; i++) {
       if (Projects[i].owner == Context.sender) {
         let project = Projects[i]
-        result.push(new ReturnedProject(project.id, project));
+        result.push(project);
       }
     }
     return result
   }
 
-  projects_assigned(): ReturnedProject[] {
-    let result = new Array<ReturnedProject>();
+  projects_assigned(): Project[] {
+    let result = new Array<Project>();
     for (let i:i32 = 0; i < Projects.length; i++) {
       if (Projects[i].contractor == Context.sender) {
       let project = Projects[i]
-      result.push(new ReturnedProject(project.id, project));
+      result.push(project);
       }
     }
     return result
