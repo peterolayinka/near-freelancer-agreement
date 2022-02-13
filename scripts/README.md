@@ -21,21 +21,19 @@ It uses the following setup:
 - Environment
   ```sh
   export CONTRACT=        # depends on deployment
-  export OWNER=           # any account you control
+  export ACCOUNT=           # any account you control
 
   # for example
   # export CONTRACT=dev-1615190770786-2702449
-  # export OWNER=sherif.testnet
+  # export ACCOUNT=sherif.testnet
   ```
 
 - Commands
 
   _helper scripts_
-  ```sh
-  1.dev-deploy.sh                # helper: build and deploy contracts
-  2.use-contract.sh              # helper: call methods on ContractPromise
-  3.cleanup.sh                   # helper: delete build and deploy artifacts
-  ```
+ ```
+  See main readme file system
+ ```
 
 ### Terminal **B**
 
@@ -43,9 +41,11 @@ It uses the following setup:
 - Environment
   ```sh
   export CONTRACT=               # depends on deployment
+  export ACCOUNT=               # account you control
 
   # for example
   # export CONTRACT=dev-1615190770786-2702449
+  # export ACCOUNT=dev-.testnet
   ```
 
 - Commands
