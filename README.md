@@ -31,6 +31,7 @@ near login
 9. run `./scripts/7.reassign-contractor.sh` to reassign a project to another contractor
 9. run `./scripts/8.update-status.sh` update project status (e.g accept, cancel, review,
 10. run `./scripts/9.cleanup.sh` to delete build
+11. run test `yarn test` to run contract test
 
 
 ```sh
