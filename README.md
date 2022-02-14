@@ -24,7 +24,7 @@ near login
 2. run `yarn install` to install dependencies
 3. run `./scripts/1.dev-deploy.sh` to deploy on development
 4. run `./scripts/2.create-project.sh` to create a freelancer project agrement
-5. run `./scripts/3.latest_project.sh` to view the lastest 10 projects
+5. run `./scripts/3.latest-projects.sh` to view the lastest 10 projects
 6. run `./scripts/4.projects-created.sh` to view projeects created
 7. run `./scripts/5.projects-assigned.sh` to view projects assign ed
 8. run `./scripts/6.project-detail.sh` to see project detail information
@@ -49,7 +49,7 @@ export CONTRACT=<contract-account>   # deployed contract account
 ├── scripts
 │   ├── 1.dev-deploy.sh                # helper: build and deploy contracts
 │   ├── 2.create-project.sh            # helper: to create a freelancer project agrement
-│   ├── 3.latest_project.sh            # helper: to view the lastest 10 projects
+│   ├── 3.latest-project.sh            # helper: to view the lastest 10 projects
 │   ├── 4.projects-created.sh          # helper: to view projeects created
 │   ├── 5.projects-assigned.sh         # helper: to view projects assign ed
 │   ├── 6.project-detail.sh            # helper: to see project detail information
